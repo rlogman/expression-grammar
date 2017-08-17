@@ -54,7 +54,7 @@ public class CalculatorGrammar {
   // Var reference
   private static final Parser<Character, Integer> varRef = varName.bind(var -> {
     Integer value = variables.get(var);
-    log.debug(String.format("Getting value of %s, which is %d", var, value));
+    log.debug("Getting value of {}, which is {}", var, value);
     return retn(value);
   });
 
@@ -68,7 +68,7 @@ public class CalculatorGrammar {
   // letExpr ::= 'let' '(' identifier ',' expr ',' expr ')'
   private static final Parser<Character, Integer> letExpr = let.then(open).then(varName)
       .bind(var -> comma.then(expr).bind(val -> {
-        log.debug(String.format("Setting variable %s with %d", var, val));
+        log.debug("Setting variable {} with {}", var, val);
         variables.put(var, val);
         return comma.then(expr).bind(exp -> close.then(retn(exp)));
       }));
@@ -82,12 +82,12 @@ public class CalculatorGrammar {
       .bind(result -> wspaces.then(eof()).then(retn(result)));
 
   public static Integer parse(String str) throws ParsingException {
-    log.trace(String.format("About to parse '%s'", str));
+    log.trace("About to parse '{}'", str);
     try {
       Reply<Character, Integer> parseResult = parser.parse(Input.of(str));
       if (parseResult.isError()) {
         String errorMessage = parseResult.getMsg();
-        log.error(String.format("Parsing finished with the following error(s): %s", errorMessage));
+        log.error("Parsing finished with the following error(s): {}", errorMessage);
         throw new ParsingException(errorMessage);
       }
       log.info("Parsing finished");
