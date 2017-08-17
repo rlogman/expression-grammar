@@ -19,88 +19,89 @@ public class CalculatorGrammar {
   protected static final String GENERAL_PARSING_EXCEPTION = "General parsing exception";
 
   // Variable map
-	private static final Map<String, Integer> variables = new HashMap<>();
+  private static final Map<String, Integer> variables = new HashMap<>();
 
-	// Forward declare expr to allow for circular references.
-	private static final Parser.Ref<Character, Integer> expr = Parser.ref();
+  // Forward declare expr to allow for circular references.
+  private static final Parser.Ref<Character, Integer> expr = Parser.ref();
 
-	// Basic tokens
-	private static final Parser<Character, String> open = token("(");
-	private static final Parser<Character, String> close = token(")");
-	private static final Parser<Character, String> comma = token(",");
-	
-	// Binary Operations
-	private static final Parser<Character, BinaryOperator<Integer>> add = token("add").label("add keyword").then(retn(
-	    (l, r) -> l + r));
-  private static final Parser<Character, BinaryOperator<Integer>> sub = token("sub").label("sub keyword").then(retn(
-      (l, r) -> l - r));
-  private static final Parser<Character, BinaryOperator<Integer>> mult = token("mult").label("mult keyword").then(retn(
-      (l, r) -> l * r));
-	private static final Parser<Character, BinaryOperator<Integer>> div = token("div").label("div keyword").then(retn(
-      (l, r) -> {
+  // Basic tokens
+  private static final Parser<Character, String> open = token("(");
+  private static final Parser<Character, String> close = token(")");
+  private static final Parser<Character, String> comma = token(",");
+
+  // Binary Operations
+  private static final Parser<Character, BinaryOperator<Integer>> add = token("add").label("add keyword")
+      .then(retn((l, r) -> l + r));
+  private static final Parser<Character, BinaryOperator<Integer>> sub = token("sub").label("sub keyword")
+      .then(retn((l, r) -> l - r));
+  private static final Parser<Character, BinaryOperator<Integer>> mult = token("mult").label("mult keyword")
+      .then(retn((l, r) -> l * r));
+  private static final Parser<Character, BinaryOperator<Integer>> div = token("div").label("div keyword")
+      .then(retn((l, r) -> {
         if (r == 0) {
           throw new ArithmeticException(DIVISION_BY_ZERO_IS_INVALID);
         }
         return l / r;
       }));
-	// Let operation
-	private static final Parser<Character, String> let = token("let").label("let keyword");
-	
-	// Identifiers
-  private static final Parser<Character, String> varName = token(regex("(?=(?!add|sub|mult|div|let))[a-zA-Z]+")).label("variable name");
+
+  // Let operation
+  private static final Parser<Character, String> let = token("let").label("let keyword");
+
+  // Identifiers
+  private static final Parser<Character, String> varName = token(regex("(?=(?!add|sub|mult|div|let))[a-zA-Z]+"))
+      .label("variable name");
 
   // Var reference
-	private static final Parser<Character, Integer> varRef = varName.bind(var -> {
-	  Integer value = variables.get(var);
+  private static final Parser<Character, Integer> varRef = varName.bind(var -> {
+    Integer value = variables.get(var);
     log.debug(String.format("Getting value of %s, which is %d", var, value));
-	  return retn(value); 
-	});
+    return retn(value);
+  });
 
   // binOpr ::= 'add' | 'sub' | 'mult' | 'div'
   private static final Parser<Character, BinaryOperator<Integer>> binOpr = choice(add, sub, mult, div);
 
-	// binExpr ::= binOpr '(' expr ',' expr ')'
-	private static final Parser<Character, Integer> binExpr = binOpr.bind(operation -> open.then(expr)
-			.bind(l -> comma.then(expr).bind(r -> close.then(retn(operation.apply(l, r))))));
+  // binExpr ::= binOpr '(' expr ',' expr ')'
+  private static final Parser<Character, Integer> binExpr = binOpr.bind(
+      operation -> open.then(expr).bind(l -> comma.then(expr).bind(r -> close.then(retn(operation.apply(l, r))))));
 
-	// letExpr ::= 'let' '(' identifier ',' expr ',' expr ')'
-	private static final Parser<Character, Integer> letExpr = let
-			.then(open).then(varName).bind(var -> comma.then(expr)
-					.bind(val -> {
-				    log.debug(String.format("Setting variable %s with %d", var, val));
-		        variables.put(var, val);
-					  return comma.then(expr).bind(exp -> close.then(retn(exp)));
-					}));
+  // letExpr ::= 'let' '(' identifier ',' expr ',' expr ')'
+  private static final Parser<Character, Integer> letExpr = let.then(open).then(varName)
+      .bind(var -> comma.then(expr).bind(val -> {
+        log.debug(String.format("Setting variable %s with %d", var, val));
+        variables.put(var, val);
+        return comma.then(expr).bind(exp -> close.then(retn(exp)));
+      }));
 
-	// expr ::= integer | varRef | binExpr | letExpr
-	static {
-		expr.set(choice(intr, varRef, binExpr, letExpr));
-	}
+  // expr ::= integer | varRef | binExpr | letExpr
+  static {
+    expr.set(choice(intr, varRef, binExpr, letExpr));
+  }
 
-	private static final Parser<Character, Integer> parser = wspaces.then(expr).bind(
-	    result -> wspaces.then(eof()).then(retn(result)));
+  private static final Parser<Character, Integer> parser = wspaces.then(expr)
+      .bind(result -> wspaces.then(eof()).then(retn(result)));
 
-	public static Integer parse(String str) throws ParsingException {
+  public static Integer parse(String str) throws ParsingException {
     log.trace(String.format("About to parse '%s'", str));
-		try {
-	    Reply<Character, Integer> parseResult = parser.parse(Input.of(str));
-	    if (parseResult.isError()) {
-	      String errorMessage = parseResult.getMsg();
+    try {
+      Reply<Character, Integer> parseResult = parser.parse(Input.of(str));
+      if (parseResult.isError()) {
+        String errorMessage = parseResult.getMsg();
         log.error(String.format("Parsing finished with the following error(s): %s", errorMessage));
         throw new ParsingException(errorMessage);
-	    }
-	    log.info("Parsing finished");
+      }
+      log.info("Parsing finished");
       return parseResult.getResult();
     } catch (Exception e) {
       throw new ParsingException(GENERAL_PARSING_EXCEPTION, e);
     }
-	}
+  }
 
-	private static final <T> Parser<Character, T> token(Parser<Character, T> p) {
-		return p.bind(x -> wspaces.then(retn(x)));
-	}
+  private static final <T> Parser<Character, T> token(Parser<Character, T> p) {
+    return p.bind(x -> wspaces.then(retn(x)));
+  }
 
-	private static Parser<Character, String> token(String name) {
-		return token(string(name));
-	}
+  private static Parser<Character, String> token(String name) {
+    return token(string(name));
+  }
 }
