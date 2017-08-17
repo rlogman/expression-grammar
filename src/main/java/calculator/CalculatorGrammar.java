@@ -51,14 +51,14 @@ public class CalculatorGrammar {
     Integer value = variables.get(var);
     log.debug("Getting value of {}, which is {}", var, value);
     return retn(value);
-  });
+  }).label("variable reference");
 
   // binOpr ::= 'add' | 'sub' | 'mult' | 'div'
-  private static final Parser<Character, BinaryOperator<Integer>> binOpr = choice(add, sub, mult, div);
+  private static final Parser<Character, BinaryOperator<Integer>> binOpr = choice(add, sub, mult, div).label("binary operator");
 
   // binExpr ::= binOpr '(' expr ',' expr ')'
-  private static final Parser<Character, Integer> binExpr = binOpr.bind(
-      operation -> open.then(expr).bind(l -> comma.then(expr).bind(r -> close.then(retn(operation.apply(l, r))))));
+  private static final Parser<Character, Integer> binExpr = binOpr.bind(operation -> open.then(expr).bind(l -> comma.then(expr).bind(r -> close.then(retn(operation.apply(l, r))))))
+      .label("binary expression");
 
   // letExpr ::= 'let' '(' identifier ',' expr ',' expr ')'
   private static final Parser<Character, Integer> letExpr = let.then(open).then(varName)
@@ -66,7 +66,7 @@ public class CalculatorGrammar {
         log.debug("Setting variable {} with {}", var, val);
         variables.put(var, val);
         return comma.then(expr).bind(exp -> close.then(retn(exp)));
-      }));
+      })).label("let expression");
 
   // expr ::= integer | varRef | binExpr | letExpr
   static {
