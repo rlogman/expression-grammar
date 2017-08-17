@@ -37,12 +37,7 @@ public class CalculatorGrammar {
   private static final Parser<Character, BinaryOperator<Integer>> mult = token("mult").label("mult keyword")
       .then(retn((l, r) -> l * r));
   private static final Parser<Character, BinaryOperator<Integer>> div = token("div").label("div keyword")
-      .then(retn((l, r) -> {
-        if (r == 0) {
-          throw new ArithmeticException(DIVISION_BY_ZERO_IS_INVALID);
-        }
-        return l / r;
-      }));
+      .then(retn((l, r) -> l / r));
 
   // Let operation
   private static final Parser<Character, String> let = token("let").label("let keyword");
