@@ -14,6 +14,7 @@ public class CLI implements ApplicationRunner {
 
   @Override
   public void run(ApplicationArguments args) throws Exception {
+    log.trace("Executing calculator. Arguments received: {}", args.getNonOptionArgs());
     try {
       List<String> nonOptionArgs = args.getNonOptionArgs();
       if (nonOptionArgs.size() != 1) {
