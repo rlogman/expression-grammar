@@ -24,6 +24,9 @@ public class CLI implements ApplicationRunner {
       System.out.println(CalculatorGrammar.parse(nonOptionArgs.get(0)));
     } catch (ParsingException e) {
       log.error("Parsing error", e);
+      Throwable cause = e.getCause();
+      System.err.printf("Parsing failed with this message: %s%n",
+          (cause != null) ? cause.getMessage() : e.getMessage());
     }
   }
 
