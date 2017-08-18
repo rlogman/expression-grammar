@@ -17,7 +17,7 @@ Once you have the application built, you can running this way:
 ```bash
 java -jar target/calculator-0.0.1-SNAPSHOT.jar "sum(5, 7)"
 ```
-Of course, you should change the expression to whatever you want to evaluate.
+Of course, you should change the expression to whatever you want to evaluate. And the .jar file could be located anywhere in your file system.
 
 ## Configuring Verbosity though Log Levels
 The application has a very flexible mechanism to configure which logs we want to see. The logging functionality is totally pluggable/unpluggable and could be configured even to generate the output to other destinations instead of the standard output, as it is set up by default. The application inherits all this flexibility from Spring and you can refer to Spring documentation for further customization.
