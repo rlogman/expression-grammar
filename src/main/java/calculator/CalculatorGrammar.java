@@ -85,7 +85,7 @@ public class CalculatorGrammar {
         log.error("Parsing finished with the following error(s): {}", errorMessage);
         throw new ParsingException(errorMessage);
       }
-      log.info("Parsing finished");
+      log.debug("Parsing finished");
       return parseResult.getResult();
     } catch (Exception e) {
       throw new ParsingException(GENERAL_PARSING_EXCEPTION, e);
